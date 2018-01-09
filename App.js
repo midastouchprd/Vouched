@@ -1,23 +1,43 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import * as Expo from "expo";
+import React, { Component } from "react";
+import { Provider } from "react-redux";
+import { Image } from "react-native";
 
-export default class App extends React.Component {
+import App from "../AppNavigator";
+
+import configureStore from "./configureStore";
+const store = configureStore();
+
+export default class Setup extends Component {
+  state = {
+    isReady: false
+  };
+  componentWillMount() {
+    this.loadFonts();
+  }
+
+  cacheImages(images) {
+    return images.map(image => {
+      if (typeof image === "string") {
+        return Image.prefetch(image);
+      } else {
+        return Expo.Asset.fromModule(image).downloadAsync();
+      }
+    });
+  }
+
+  async loadFonts() {
+    await Expo.Font.loadAsync({});
+    this.setState({ isReady: true });
+  }
   render() {
+    if (!this.state.isReady) {
+      return <Expo.AppLoading />;
+    }
     return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
-      </View>
+      <Provider store={store}>
+        <App />
+      </Provider>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
